@@ -74,7 +74,7 @@ docker rm -f $(docker ps -aq)   //q代表只展示id
 
 **重点2：docker非常适合微服务架构，每个服务可以独立运行在容器中。**
 
-![image-20241015154427193](C:\Users\14586\AppData\Roaming\Typora\typora-user-images\image-20241015154427193.png)
+![image-20241015154427193](.\assets\image-20241015154427193.png)
 
 # 四、常用命令看另一份PDF
 
@@ -86,7 +86,7 @@ Docker 公司提供了公共的镜像仓库 `https://hub.docker.com`，里面提
 
 在使用 `docker run` 运行镜像的时候，docker 会检查本机是否存在镜像，如果存在就使用这个镜像运行为一个容器，而如果不存在，就会去 Docker Hub上下载，下载完成，再运行这个镜像。
 
-![image-20241015171114228](C:\Users\14586\AppData\Roaming\Typora\typora-user-images\image-20241015171114228.png)
+![image-20241015171114228](.\assets\image-20241015171114228.png)
 
 镜像源可以用一下命令更改，**镜像加速就是国外的dockerhub访问满了，用国内镜像站点**
 
@@ -180,7 +180,7 @@ nginx的端口号**默认是80，除非修改**
 
 # 补充6：docker创建后会有自己的ip
 
-![image-20241016141941656](C:\Users\14586\AppData\Roaming\Typora\typora-user-images\image-20241016141941656.png)
+![image-20241016141941656](.\assets\image-20241016141941656.png)
 
 容器创建，**docker0会分配ip，但不支持主机域名**
 
@@ -200,7 +200,7 @@ curl http://app2:80  //容器之间内部访问端口号是容器端口！！！
 
 # 补充7：redis主从同步集群
 
-![image-20241016194916073](C:\Users\14586\AppData\Roaming\Typora\typora-user-images\image-20241016194916073.png)
+![image-20241016194916073](.\assets\image-20241016194916073.png)
 
 redis主机写数据，从机读数据。主机改变，从机自动改变！**实现读写分离！！！**
 
@@ -224,7 +224,7 @@ docker logs id 可以查看日志信息
 
 上述两个目录可以通过目录映射到外部主机，**一般放在/app下的文件夹**
 
-![image-20241016204436493](C:\Users\14586\AppData\Roaming\Typora\typora-user-images\image-20241016204436493.png)
+![image-20241016204436493](.\assets\image-20241016204436493.png)
 
 有一个概念明白，目录挂载以外面的为主**。-e配置的信息会直接过去，没有的就是权限问题！！！**
 
@@ -232,7 +232,7 @@ docker logs id 可以查看日志信息
 
 编写compose.yaml
 
-![image-20241016210124167](C:\Users\14586\AppData\Roaming\Typora\typora-user-images\image-20241016210124167.png)
+![image-20241016210124167](.\assets\image-20241016210124167.png)
 
 要包含顶级元素前四个里面的内容！！！
 
@@ -256,7 +256,7 @@ docker compose down --rmi all --v  //移除镜像和卷
 
 # 补充10：Dockerfile制作镜像
 
-![image-20241017105816774](C:\Users\14586\AppData\Roaming\Typora\typora-user-images\image-20241017105816774.png)
+![image-20241017105816774](.\assets\image-20241017105816774.png)
 
 **常用的，基础的就是蓝色框框的**
 
