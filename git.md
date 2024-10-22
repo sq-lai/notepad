@@ -194,3 +194,16 @@ git的推送那些在上面点击对应的git选项
 第一个是提交：显示修改了的文件
 
 第二个是拉取：可以关联github
+
+## 2.1 团队协作中的建立仓库，拉取相应分支
+1.创建一个文件夹，初始化git代码仓
+
+2.git remote add origin URL地址,连接到远程仓库
+
+3.git fetch origin 查看远程仓库所有的分支信息
+
+4.git checkout -b dev origin/dev 创建本地dev并切换到那里，连接远程dev分支
+
+5.git pull origin dev 拉取代码从dev分支
+
+
