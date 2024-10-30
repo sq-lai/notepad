@@ -13,10 +13,10 @@
 会在这个工作空间产生一个代码本地代码仓库，默认分支master。**每次新开一个都会是默认master**
 
 ```
-然后输入git branch -m master main
+然后输入git branch -M main
 ```
 
-输入上述代码指令可以**重命名当前分支**
+输入上述代码指令可以**重命名当前分支**，这个是最新的，强制重新命名！！！！
 
 ```
 git add .
@@ -195,14 +195,58 @@ git的推送那些在上面点击对应的git选项
 
 第二个是拉取：可以关联github
 
-## 2.1 团队协作中的建立仓库，拉取相应分支
-1.创建一个文件夹，初始化git代码仓
+## 2.1 远端无项目这样做（远端本地都刚新建仓库）
+1.本地创建一个文件夹，初始化git代码仓
 
 2.git remote add origin URL地址,连接到远程仓库
 
-3.git fetch origin 查看远程仓库所有的分支信息
+3.本地开发好后，git add .
 
-4.git checkout -b dev origin/dev 创建本地dev并切换到那里，连接远程dev分支
+4.git commit
 
-5.git pull origin dev 拉取代码从dev分支
+5.git push
+
+
+## 2.2 远端有项目的情况，拉下来开发再推送
+1.在本地建立好要存储项目的文件夹
+
+2.拉取远端的项目：
+
+    2.1 直接拉取整个代码仓库
+    git clone + SHH/http的url
+    2.2 拉取某个分支的
+    git clone -b 分支名称 +url路径
+总结：
+当你使用 git clone 从远程仓库克隆整个项目时，Git 会自动为你完成初始化步骤，也就是说，克隆下来的仓库已经是一个完整的 Git 仓库，它已经具备以下内容：
+
+    1.Git 仓库初始化（git init）：Git 在克隆时会自动完成初始化，你不需要手动执行 git init。
+    2.关联远程仓库：Git 会自动关联到远程仓库（通常是 GitLab、GitHub 等的地址）。你可以使用 git remote -v 查看已经配置好的远程仓库信息。
+    重点：通常在克隆时默认叫 origin
+3.如果是拉取的整个项目，到时候切换对应的分支工作即可。完事后执行：
+    
+    git add .
+    git commit -m "Made changes to feature-branch"
+    git push origin feature-branch
+    此时，Git 只会把你在 feature-branch 分支上的更改推送到远程的 feature-branch，并不会推送其他分支上的内容或整个仓库的所有分支。
+
+4.切换分支的命令区别
+
+    git checkout feature-branch 切换到已存在的分支
+    git checkout -b new-feature 创建并切换到一个新的分支
+    重点：
+    无论你在 main 上创建 feature-x，还是在其他分支上创建新分支，这个新分支总是会继承你当前所在分支的所有内容，包括所有的文件和提交历史。
+
+5.基于现在的创建了一个新分支，仓库默认是关联的，缓存提交，直接推送就好
+
+    git push -u origin feature-x
+    执行了 git push -u origin feature-x 之后，远程仓库中就会出现一个名为 feature-x 的新分支。
+
+
+
+![alt text](./assets/2024-10-30_11-20.png)
+
+同理如果是拉取某个分支，就是自动创建相应的分支名称
+
+
+
 
