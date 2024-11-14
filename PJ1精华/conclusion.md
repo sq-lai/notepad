@@ -574,6 +574,76 @@ java和resources并列，**测试的没有resources**。main下的resources放ym
 
 ![image-20241113150844957](.\assets\image-20241113150844957.png)
 
+#### 1.创建任务启动接口
+
+controller层和service层，在service层里面执行 xxlJobClient.addAndStart("newOrderTaskHandler", "",
+                    "0 0/1 * * * ?",
+                    "新创建订单任务调度：" + newOrderTaskVo.getOrderId());	
+
+#### 2.开发具体job任务方法
+
+jobhandler层主要是joblog日志的记录，在里面 newOrderService.executeTask(XxlJobHelper.getJobId());
+
+executeTask方法在service层里面开发（jobid查询数据库看任务有无，查看订单状态，获取满足条件司机集合，便利集合确保一个订单只给一次司机，最后用临时队列保存每个司机的订单信息）
+
+#### 3.乘客下单的service层加入远程调用任务调度
+
+在保存订单信息的service层下面加入远程调用addAndStartTask
+
+
+
+### 6.10 司机获取最新订单数据
+
+查询最新订单和清空司机队列数据，在NewOrderController编写。**相当于之前的保存的订单临时队列在这里被调用检查。**
+
+## 7.乘客下单大总结
+
+![乘客下单 ](.\assets\乘客下单 .jpg)
+
+**这里看不清，可以右键打开图片所在位置，点击就可以缩放来查看**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
