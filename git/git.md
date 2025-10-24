@@ -54,7 +54,9 @@ git remote -v   -v会显示所有远端仓库的名称以及上传下拉的地�
 git push -u origin master
 ```
 
-**-u是连接到这个仓库的分支**，以后用 git push就行默认。**-f是强制上传覆盖**。**origin和master名字可以更换**
+**-u是连接到这个仓库的分支**，以后用 git push就行默认。**-f是强制上传覆盖**。**
+
+**origin是之前XXX对应的上游仓库名称，master这个是要推送的本地分支名称，可以先改名为main好些！！！！**
 
 一般来说一个本地仓库会和一个云端仓库相对应。
 
@@ -247,6 +249,294 @@ git的推送那些在上面点击对应的git选项
 
 同理如果是拉取某个分支，就是自动创建相应的分支名称
 
+# 二、git和git lfs的区别及使用
+
+## 概述
+
+**Git** 和 **Git LFS** 不是替代关系，而是互补关系：
+
+- **Git**: 专为**代码和文本文件**优化的版本控制系统
+- **Git LFS**: Git 的扩展，专门处理大文件**（数据集和模型文件）**的存储和版本管理
+
+## 核心区别对比
+
+| 特性         | Git                       | Git LFS                           |
+| :----------- | :------------------------ | :-------------------------------- |
+| **设计目的** | 代码版本控制              | 大文件版本管理                    |
+| **文件存储** | **直接存储在 `.git`目录** | **存储指针，实际文件在LFS服务器** |
+| **仓库体积** | 随文件数量线性增长        | 基本恒定（只存储指针）            |
+| **克隆性能** | 下载所有历史版本          | **可选择只下载当前版本**          |
+| **网络效率** | 每次传输完整文件          | 智能差异传输                      |
+| **适用场景** | 代码、配置文件、文档      | 模型、数据集、媒体文件            |
+
+## 初始化设置区别
+
+### Git 设置
+
+```
+# 无需特殊设置
+git init
+git clone <repository>
+```
+
+### Git LFS 设置（mac推荐brew下载，然后install一次就行）
+
+```
+# 需要安装和配置
+git lfs install
+
+# 指定跟踪的文件类型
+git lfs track "*.pth"
+git lfs track "*.zip"
+git lfs track "models/"
+
+# 必须提交配置文件
+git add .gitattributes
+```
+
+## 日常使用工作流
+
+### 添加和提交文件
+
+#### 普通文件（两者相同）
+
+```
+git add README.md script.py config.yaml
+git commit -m "添加代码文件"
+```
+
+#### 大文件处理区别
+
+**Git LFS（推荐）**
+
+```
+# LFS 自动识别和处理大文件
+git add large_model.pth dataset.zip
+
+git commit -m "添加模型和数据集"
+# 输出: LFS: 2 files, 600.00MB
+
+git push  # 大文件上传到LFS服务器
+```
+
+**普通 Git（不推荐）**
+
+```
+git add large_model.pth dataset.zip
+git commit -m "添加文件"  # 提交缓慢
+git push  # 推送缓慢，仓库膨胀
+```
+
+### 仓库克隆操作
+
+#### Git LFS 克隆选项
+
+```
+# 1. 自动下载LFS文件（默认）
+git clone https://huggingface.co/datasets/example
+
+# 2. 仅克隆指针，按需下载
+GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/datasets/example
+cd example
+git lfs pull  # 需要时下载大文件
+
+# 3. 下载特定LFS文件
+git lfs pull --include="models/important.pth"
+```
+
+#### 普通 Git 克隆
+
+```
+git clone https://github.com/example/repo
+# 所有文件立即下载，无法选择性下载
+```
+
+## 文件管理命令对比
+
+### 查看文件状态
+
+**Git LFS**
+
+```
+git lfs ls-files          # 查看LFS跟踪的文件
+git lfs status            # 查看LFS文件状态
+git lfs track             # 查看当前跟踪模式
+git lfs env               # 查看LFS环境信息
+```
+
+**普通 Git**
+
+```
+git ls-files              # 查看所有跟踪文件
+git status                # 标准状态检查
+git log --oneline --graph # 查看提交历史
+```
+
+### 文件大小检查
+
+```
+# LFS文件初始显示指针大小
+ls -lh large_model.pth    # 显示: 130B (指针文件)
+
+# 下载实际文件后
+git lfs pull
+ls -lh large_model.pth    # 显示: 100M (实际文件)
+```
+
+## Hugging Face 特别说明
+
+对于 Hugging Face 数据集和模型仓库：
+
+1. **强烈推荐使用 Git LFS** - 平台为LFS文件提供优化存储
+2. **自动LFS支持** - 克隆时自动处理LFS文件下载
+3. **存储配额** - 注意平台的LFS存储限制
+4. **下载优化** - 利用HF的CDN加速大文件下载
+
+```
+# Hugging Face 最佳实践
+git lfs install
+git lfs track "*.pth" "*.safetensors" "data/*.parquet"
+git add .gitattributes
+git add .
+git commit -m "添加模型和数据集"
+git push
+```
+
+## 疑问解答：意思就是我git lfs下载安装好后，平时没有大文件正常git使用就行。有大文件就git lfs track "xxx"这样，然后多一步git add .gitattributes这个，其他的还是正常git？.gitattributes是自动生成的吗？
+
+## 理解完全正确
+
+### 工作流程总结：
+
+1. **安装 Git LFS**（一次性操作）
+2. **日常使用**：和以前一样正常使用 `git add/commit/push`
+3. **遇到大文件时**：多一步 `git lfs track "文件模式"`
+4. **提交时**：记得包含 `.gitattributes`文件
+5. **其他操作**：完全和普通 Git 一样
+
+------
+
+## 关于 `.gitattributes`文件
+
+### 它是**自动生成+手动维护**的：
+
+**自动生成部分**：
+
+```
+# 当你运行 track 命令时，LFS 会自动修改 .gitattributes
+git lfs track "*.pth"
+# 自动在 .gitattributes 中添加：*.pth filter=lfs diff=lfs merge=lfs -text
+```
+
+**文件内容示例**：
+
+```
+# 这是自动生成和手动维护的配置文件
+*.pth filter=lfs diff=lfs merge=lfs -text
+*.zip filter=lfs diff=lfs merge=lfs -text
+models/ filter=lfs diff=lfs merge=lfs -text
+data/**.parquet filter=lfs diff=lfs merge=lfs -text
+
+# 你可以手动添加注释和调整
+# 模型文件使用 LFS
+*.pth filter=lfs diff=lfs merge=lfs -text
+*.pt filter=lfs diff=lfs merge=lfs -text
+
+# 数据集文件使用 LFS  
+*.zip filter=lfs diff=lfs merge=lfs -text
+```
+
+------
+
+## 完整的使用示例
+
+### 场景：机器学习项目，第一次添加模型文件
+
+```
+# 1. 初始化LFS（只需一次）
+git lfs install
+
+# 2. 告诉LFS要跟踪.pth文件
+git lfs track "*.pth"
+
+# 3. 查看自动生成的.gitattributes
+cat .gitattributes
+# 输出：*.pth filter=lfs diff=lfs merge=lfs -text
+
+# 4. 正常git操作，但记得添加.gitattributes
+git add .gitattributes    # ⭐ 重要：添加LFS配置
+git add model.pth         # 大文件（自动用LFS处理）
+git add train.py          # 小文件（正常Git处理）
+
+# 5. 提交和推送（完全正常操作）
+git commit -m "添加训练脚本和模型"
+git push
+```
+
+### 后续日常使用：
+
+```
+# 修改代码文件（完全正常使用）
+git add train.py
+git commit -m "优化训练逻辑"
+git push
+
+# 添加新的大文件（需要先track）
+git lfs track "*.h5"
+git add .gitattributes    # 更新LFS配置
+git add new_model.h5
+git commit -m "添加新模型格式"
+git push
+```
+
+------
+
+## 重要提醒
+
+### ✅ **必须操作**：
+
+```
+# 添加新文件类型后，一定要提交.gitattributes
+git add .gitattributes
+```
+
+### ❌ **常见错误**：
+
+```
+# 错误：只添加了大文件，忘了.gitattributes
+git lfs track "*.pth"
+git add model.pth
+git commit -m "add model"  # ❌ 缺少.gitattributes
+
+# 正确：同时添加配置和文件
+git lfs track "*.pth"
+git add .gitattributes model.pth
+git commit -m "add model"  # ✅ 正确
+```
+
+------
+
+## 验证LFS是否正常工作
+
+```
+# 检查哪些文件被LFS跟踪
+git lfs ls-files
+
+# 查看.gitattributes内容
+cat .gitattributes
+
+# 检查文件存储方式
+git check-attr -a model.pth
+```
+
+## 总结
+
+**你的理解完全正确**：
+
+- ✅ 平时小文件：正常使用 Git，完全不用想 LFS
+- ✅ 遇到大文件：`git lfs track "模式"`+ `git add .gitattributes`
+- ✅ 其他操作：和普通 Git 完全一样
+- ✅ `.gitattributes`：LFS 自动生成和维护，你只需要记得提交它
 
 
 
