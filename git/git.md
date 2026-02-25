@@ -542,3 +542,159 @@ git check-attr -a model.pth
 
 
 
+# 三、从零开始上传项目到 GitHub 完整流程（含 .gitignore + Git LFS）
+
+适用场景：本地项目开发完成，需要上传到 GitHub，项目中有不需要 Git 管理的文件（如 `.claude`、`.vscode`），也有超过 100MB 的大文件（如模型权重 `.pth`）。
+
+## 3.1 第一步：初始化本地仓库
+
+```
+cd /你的项目目录
+git init
+git branch -M main
+```
+
+## 3.2 第二步：配置 .gitignore（排除不需要的文件）
+
+在项目根目录创建 `.gitignore` 文件，写入不需要 Git 管理的文件和文件夹：
+
+```
+# IDE 和编辑器配置
+.vscode/
+.idea/
+
+# AI 工具配置
+.claude/
+
+# Python 相关
+__pycache__/
+*.pyc
+.env
+venv/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 其他不需要上传的
+*.log
+```
+
+**重点：`.gitignore` 必须在 `git add` 之前创建好，否则已经被 Git 追踪的文件不会被忽略。**
+
+## 3.3 第三步：配置 Git LFS（处理大文件）
+
+如果项目中有大文件（超过 100MB），必须在 `git add` 之前配置好 LFS：
+
+```
+# 1. 初始化 LFS（每台电脑只需一次）
+git lfs install
+
+# 2. 指定哪些文件用 LFS 管理
+git lfs track "*.pth"          # 按后缀追踪
+git lfs track "*.pt"
+git lfs track "*.onnx"
+git lfs track "*.zip"
+# 也可以指定具体路径
+git lfs track "weights/*.pth"
+
+# 3. 确认 .gitattributes 已自动生成
+cat .gitattributes
+```
+
+## 3.4 第四步：添加文件到暂存区并提交
+
+```
+# 先添加 .gitignore 和 .gitattributes
+git add .gitignore .gitattributes
+
+# 再添加所有文件（被 .gitignore 排除的不会被添加，大文件自动走 LFS）
+git add .
+
+# 提交到本地仓库
+git commit -m "初始提交"
+```
+
+## 3.5 第五步：关联远程仓库并推送
+
+```
+# 在 GitHub 上新建一个空仓库（不要勾选 README、.gitignore 等初始化选项）
+
+# 关联远程仓库（推荐 SSH 协议）
+git remote add origin git@github.com:用户名/仓库名.git
+
+# 推送
+git push -u origin main
+```
+
+## 3.6 常见问题处理
+
+### 问题一：大文件已经 commit 了才发现超过 100MB，push 被拒绝
+
+这就是本次遇到的情况，解决步骤：
+
+```
+# 1. 安装并初始化 LFS
+git lfs install
+
+# 2. 用 migrate 重写历史，把大文件转为 LFS 指针
+git lfs migrate import --include="路径/大文件1,路径/大文件2" --everything
+
+# 例如：
+git lfs migrate import --include="det-system/pths/aclnetpth/aclnet.pth,det-system/pths/epsnetpth/epsnet.pth" --everything
+
+# 3. 验证 LFS 是否追踪成功
+git lfs ls-files
+
+# 4. 因为历史被重写了，需要 force push
+git push -u origin main --force
+```
+
+**重点：`git lfs migrate import` 会重写本地 Git 历史，只影响本地，不会自动推送。必须手动 `--force` 推送。**
+
+### 问题二：.gitignore 创建晚了，文件已经被追踪了
+
+```
+# 从 Git 追踪中移除（不删除本地文件）
+git rm -r --cached .vscode/
+git rm -r --cached .claude/
+
+# 然后提交
+git add .gitignore
+git commit -m "添加 .gitignore，移除不需要追踪的文件"
+git push
+```
+
+## 3.7 完整命令速查（从零开始一条龙）
+
+```
+# ===== 1. 初始化 =====
+cd /你的项目目录
+git init
+git branch -M main
+
+# ===== 2. 创建 .gitignore =====
+# 在项目根目录创建 .gitignore，写入要排除的文件
+
+# ===== 3. 配置 LFS（有大文件时） =====
+git lfs install
+git lfs track "*.pth"
+# 根据需要 track 其他大文件类型
+
+# ===== 4. 添加并提交 =====
+git add .gitignore .gitattributes
+git add .
+git commit -m "初始提交"
+
+# ===== 5. 关联远程仓库并推送 =====
+git remote add origin git@github.com:用户名/仓库名.git
+git push -u origin main
+
+# ===== 后续日常使用 =====
+git add .
+git commit -m "描述修改内容"
+git push
+```
+
+**核心原则：先 .gitignore → 再 LFS track → 最后 git add，顺序不能乱！**
+
