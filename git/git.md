@@ -698,3 +698,4 @@ git push
 
 **核心原则：先 .gitignore → 再 LFS track → 最后 git add，顺序不能乱！**
 
+**git pull拉取不受影响，pull的时候检测到有lfs指针会去云端仓库下载权重，所以来下来都是的**
